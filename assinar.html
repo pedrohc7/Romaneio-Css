@@ -131,11 +131,11 @@
       display: block;
     }
 
-    /* Campo PA marcado na imagem (visual apenas) */
+    /* Campo motoboy marcado na imagem (visual apenas) */
     .campo-pa-indicator {
       position: absolute;
-      left: 49.89%; top: 81.96%;
-      width: 50.11%; height: 4.51%;
+      left: 53%; top: 81.5%;
+      width: 45%; height: 2.2%;
       border: 2px dashed var(--red);
       pointer-events: none;
       opacity: 0;
@@ -366,7 +366,8 @@
 <script type="module">
   import { supabase } from './js/supabase.js'
 
-  const PA = { fx0: 0.4989, fy0: 0.8196, fx1: 1.0, fy1: 0.8647 }
+  // Campo do motoboy — espelho do campo de Pedro (lado direito)
+  const PA = { fx0: 0.53, fy0: 0.815, fx1: 0.98, fy1: 0.837 }
 
   // ── Lê token da URL ───────────────────────────────────────
   const params = new URLSearchParams(window.location.search)
