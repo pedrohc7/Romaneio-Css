@@ -515,15 +515,13 @@
       // 2) Desenha a imagem de Pedro
       ctx.drawImage(img, 0, 0)
 
-      // 3) Fundo branco no campo PA (limpa assinatura anterior)
+      // 3) Posição do campo do motoboy
       const sx = PA.fx0 * out.width
       const sy = PA.fy0 * out.height
       const sw = (PA.fx1 - PA.fx0) * out.width
       const sh = (PA.fy1 - PA.fy0) * out.height
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(sx, sy, sw, sh)
 
-      // 4) Desenha assinatura do P.A. na posição PA
+      // 4) Desenha assinatura do motoboy (fundo transparente — preserva linha)
       ctx.drawImage(sigPad, 0, 0, sigPad.width, sigPad.height, sx, sy, sw, sh)
 
       // 5) Exporta como blob
