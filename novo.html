@@ -146,8 +146,8 @@
 
     #sigOverlay {
       position: absolute;
-      left: 49.89%; top: 81.96%;
-      width: 50.11%; height: 4.51%;
+      left: 2%; top: 81.5%;
+      width: 45%; height: 2.2%;
       pointer-events: none;
       background: var(--yellow);
       border: 2px dashed var(--dash);
@@ -158,10 +158,10 @@
 
     #sigLabel {
       position: absolute;
-      left: 49.89%; top: 81.96%;
-      width: 50.11%;
+      left: 2%; top: 81.5%;
+      width: 45%;
       text-align: center;
-      transform: translateY(-115%);
+      transform: translateY(-120%);
       font-size: 11px;
       font-weight: 700;
       color: var(--dash);
@@ -486,7 +486,8 @@
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) { window.location.href = 'login.html'; throw 0 }
 
-  const PA = { fx0: 0.4989, fy0: 0.8196, fx1: 1.0, fy1: 0.8647 }
+  // Campo de Pedro (lado esquerdo do documento)
+  const PA = { fx0: 0.02, fy0: 0.815, fx1: 0.47, fy1: 0.837 }
 
   let pdfDoc     = null
   let pdfPageImg = null
@@ -532,6 +533,7 @@
     await renderPage(1)
     dropZone.classList.add('hidden')
     document.getElementById('docSection').classList.add('visible')
+    initPad()   // inicializa o pad agora que o canvas está visível
     toast('PDF carregado ✓')
   }
 
@@ -578,11 +580,11 @@
   function initPad() {
     const dpr  = window.devicePixelRatio || 1
     const rect = sigPad.getBoundingClientRect()
+    if (!rect.width) return   // ainda oculto, aguarda
     sigPad.width  = rect.width  * dpr
     sigPad.height = rect.height * dpr
-    sigCtx.scale(dpr, dpr)
+    sigCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
   }
-  initPad()
   window.addEventListener('resize', initPad)
 
   function padPos(e) {
