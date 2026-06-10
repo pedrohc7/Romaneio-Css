@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Romaneio Digital — Novo Romaneio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #1a3a6e;
+      --blue-l:  #2a5298;
+      --red:     #c0392b;
+      --paper:   #f4f1eb;
+      --ink:     #1c1c1c;
+      --muted:   #888;
+      --border:  #d0ccc4;
+      --yellow:  rgba(255,230,0,.45);
+      --dash:    #c09000;
+    }
+
+    body {
+      font-family: 'IBM Plex Mono', monospace;
+      background: var(--paper);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 40px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      width: 100%;
+      background: var(--blue);
+      border-bottom: 3px solid var(--red);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-voltar {
+      background: none;
+      border: 1.5px solid rgba(255,255,255,.3);
+      color: rgba(255,255,255,.8);
+      padding: 5px 12px;
+      border-radius: 3px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-voltar:hover { border-color: rgba(255,255,255,.7); color: #fff; }
+
+    /* ── CONTEÚDO ── */
+    .conteudo {
+      width: 100%;
+      max-width: 860px;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── DROP ZONE ── */
+    #dropZone {
+      border: 2px dashed var(--border);
+      border-radius: 4px;
+      background: #fff;
+      padding: 56px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    #dropZone.over { border-color: var(--blue); background: #f0f4ff; }
+    #dropZone.hidden { display: none; }
+    #dropZone .icon { font-size: 44px; margin-bottom: 14px; }
+    #dropZone h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    #dropZone p { font-size: 12px; color: var(--muted); }
+    #dropZone label {
+      display: inline-block;
+      margin-top: 18px;
+      background: var(--blue);
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    #fileInput { display: none; }
+
+    /* ── DOCUMENTO ── */
+    #docSection {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    #docSection.visible { display: flex; }
+
+    .pdf-wrapper {
+      position: relative;
+      width: 100%;
+      line-height: 0;
+      box-shadow: 0 4px 20px rgba(0,0,0,.18);
+      border-radius: 2px;
+      overflow: hidden;
+      background: #fff;
+    }
+    #pdfCanvas { width: 100%; height: auto; display: block; }
+
+    #sigOverlay {
+      position: absolute;
+      left: 49.89%; top: 81.96%;
+      width: 50.11%; height: 4.51%;
+      pointer-events: none;
+      background: var(--yellow);
+      border: 2px dashed var(--dash);
+      border-radius: 2px;
+      transition: background .3s, border .3s;
+    }
+    #sigOverlay.signed { background: transparent; border-color: transparent; }
+
+    #sigLabel {
+      position: absolute;
+      left: 49.89%; top: 81.96%;
+      width: 50.11%;
+      text-align: center;
+      transform: translateY(-115%);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--dash);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #sigLabel.hidden { display: none; }
+
+    .btn-trocar {
+      position: absolute;
+      top: 8px; right: 8px;
+      z-index: 10;
+      background: rgba(255,255,255,.92);
+      border: 1.5px solid var(--border);
+      color: var(--ink);
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-trocar:hover { background: #fff; }
+
+    /* ── PAINEL ASSINATURA ── */
+    .sign-panel {
+      width: 100%;
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      padding: 18px 20px 20px;
+    }
+
+    .sign-panel-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sign-panel-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px; height: 15px;
+      background: var(--red);
+      border-radius: 2px;
+    }
+
+    #sigPad {
+      width: 100%;
+      height: 140px;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      background: #fafaf8;
+      cursor: crosshair;
+      touch-action: none;
+      display: block;
+    }
+    #sigPad.active { border-color: var(--blue); background: #fff; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+
+    .btn-limpar {
+      padding: 10px 22px;
+      border-radius: 3px;
+      border: 1.5px solid var(--red);
+      background: #fff;
+      color: var(--red);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .15s;
+    }
+    .btn-limpar:hover { background: #fff0f0; }
+
+    .btn-gerar {
+      padding: 10px 24px;
+      border-radius: 3px;
+      border: none;
+      background: var(--blue);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background .2s;
+    }
+    .btn-gerar:hover { background: var(--blue-l); }
+    .btn-gerar:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* ── MODAL LINK ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+      display: none;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: var(--paper);
+      border-radius: 4px;
+      width: 100%;
+      max-width: 480px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+
+    .modal-header {
+      background: var(--blue);
+      border-bottom: 3px solid var(--red);
+      padding: 18px 22px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .modal-body { padding: 24px 22px; }
+
+    .modal-body p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+
+    .link-box {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      padding: 11px 14px;
+      font-size: 11px;
+      color: var(--blue);
+      word-break: break-all;
+      margin-bottom: 16px;
+      cursor: text;
+      user-select: all;
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-modal {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px 14px;
+      border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .15s;
+      border: none;
+    }
+
+    .btn-copiar-link {
+      background: var(--blue);
+      color: #fff;
+    }
+    .btn-copiar-link:hover { background: var(--blue-l); }
+    .btn-copiar-link.copiado { background: #2d6a4f; }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: #fff;
+    }
+    .btn-whatsapp:hover { background: #1da852; }
+
+    .btn-fechar {
+      background: #fff;
+      color: var(--muted);
+      border: 1.5px solid var(--border) !important;
+      border: none;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .btn-fechar:hover { background: #f0f0f0; }
+
+    /* ── TOAST / SPINNER ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 12px;
+      opacity: 0;
+      transition: all .3s;
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 500px) {
+      .btn-row { justify-content: stretch; }
+      .btn-gerar, .btn-limpar { flex: 1; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">📋 Romaneio Digital</div>
+  <a href="index.html" class="btn-voltar">← Voltar</a>
+</header>
+
+<div class="conteudo">
+
+  <!-- DROP ZONE -->
+  <div id="dropZone">
+    <div class="icon">📂</div>
+    <h2>Carregar Romaneio</h2>
+    <p>Arraste e solte o arquivo PDF aqui ou clique para selecionar</p>
+    <label for="fileInput">Selecionar PDF</label>
+    <input type="file" id="fileInput" accept=".pdf"/>
+  </div>
+
+  <!-- DOCUMENTO + ASSINATURA -->
+  <div id="docSection">
+    <div class="pdf-wrapper" id="pdfWrapper">
+      <canvas id="pdfCanvas"></canvas>
+      <canvas id="sigOverlay"></canvas>
+      <div id="sigLabel">✏️ Assine no campo abaixo</div>
+      <button class="btn-trocar" onclick="trocarArquivo()">🔄 Trocar PDF</button>
+    </div>
+
+    <div class="sign-panel">
+      <div class="sign-panel-title">Minha Assinatura</div>
+      <canvas id="sigPad"></canvas>
+      <div class="btn-row">
+        <button class="btn-limpar" onclick="clearSig()">🗑 Limpar</button>
+        <button class="btn-gerar" id="btnGerar" onclick="gerarLink()">
+          🔗 Gerar link para P.A.
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">📋 Link gerado com sucesso!</div>
+    <div class="modal-body">
+      <p>Envie este link para o P.A. assinar. Ele não precisa de conta — basta abrir e assinar.</p>
+      <div class="link-box" id="linkBox"></div>
+      <div class="modal-btns">
+        <button class="btn-modal btn-copiar-link" id="btnCopiarLink" onclick="copiarLink()">
+          📋 Copiar link
+        </button>
+        <button class="btn-modal btn-whatsapp" id="btnWhatsapp" onclick="enviarWhatsapp()">
+          📱 WhatsApp
+        </button>
+      </div>
+      <button class="btn-modal btn-fechar" onclick="fecharModal()">
+        Ir para o painel
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+</script>
+
+<script type="module">
+  import { supabase } from './js/supabase.js'
+
+  // Verifica sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) { window.location.href = 'login.html'; throw 0 }
+
+  const PA = { fx0: 0.4989, fy0: 0.8196, fx1: 1.0, fy1: 0.8647 }
+
+  let pdfDoc     = null
+  let pdfPageImg = null
+  let hasSig     = false
+  let nomeArquivo = ''
+  let linkGerado = ''
+
+  // ── DROP ZONE ──────────────────────────────────────────────
+  const dropZone  = document.getElementById('dropZone')
+  const fileInput = document.getElementById('fileInput')
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault()
+    dropZone.classList.add('over')
+  })
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'))
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault()
+    dropZone.classList.remove('over')
+    const file = e.dataTransfer.files[0]
+    if (file && file.type === 'application/pdf') loadPDF(file)
+    else toast('⚠️ Envie um arquivo PDF')
+  })
+  dropZone.addEventListener('click', () => fileInput.click())
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) loadPDF(e.target.files[0])
+  })
+
+  window.trocarArquivo = function() {
+    document.getElementById('docSection').classList.remove('visible')
+    dropZone.classList.remove('hidden')
+    fileInput.value = ''
+    clearSig()
+    pdfPageImg = null
+  }
+
+  // ── CARREGA PDF ────────────────────────────────────────────
+  async function loadPDF(file) {
+    toast('Carregando PDF...')
+    nomeArquivo = file.name
+    const arrayBuffer = await file.arrayBuffer()
+    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+    await renderPage(1)
+    dropZone.classList.add('hidden')
+    document.getElementById('docSection').classList.add('visible')
+    toast('PDF carregado ✓')
+  }
+
+  async function renderPage(num) {
+    const page     = await pdfDoc.getPage(num)
+    const viewport = page.getViewport({ scale: 2 })
+    const offscreen = document.createElement('canvas')
+    offscreen.width  = viewport.width
+    offscreen.height = viewport.height
+    await page.render({ canvasContext: offscreen.getContext('2d'), viewport }).promise
+    pdfPageImg = await createImageBitmap(offscreen)
+    const pdfCanvas = document.getElementById('pdfCanvas')
+    pdfCanvas.width  = viewport.width
+    pdfCanvas.height = viewport.height
+    pdfCanvas.getContext('2d').drawImage(pdfPageImg, 0, 0)
+    adjustOverlay()
+    redrawOverlay()
+  }
+
+  // ── OVERLAY ────────────────────────────────────────────────
+  function adjustOverlay() {
+    const pdfCanvas = document.getElementById('pdfCanvas')
+    const overlay   = document.getElementById('sigOverlay')
+    overlay.width  = Math.round((PA.fx1 - PA.fx0) * pdfCanvas.width)
+    overlay.height = Math.round((PA.fy1 - PA.fy0) * pdfCanvas.height)
+  }
+
+  function redrawOverlay() {
+    const overlay = document.getElementById('sigOverlay')
+    const ctx = overlay.getContext('2d')
+    ctx.clearRect(0, 0, overlay.width, overlay.height)
+    if (!hasSig) return
+    const sigPad = document.getElementById('sigPad')
+    ctx.drawImage(sigPad, 0, 0, overlay.width, overlay.height)
+  }
+
+  window.addEventListener('resize', () => { if (pdfPageImg) adjustOverlay() })
+
+  // ── PAD ASSINATURA ─────────────────────────────────────────
+  const sigPad = document.getElementById('sigPad')
+  const sigCtx = sigPad.getContext('2d')
+  let drawing = false, lx = 0, ly = 0
+
+  function initPad() {
+    const dpr  = window.devicePixelRatio || 1
+    const rect = sigPad.getBoundingClientRect()
+    sigPad.width  = rect.width  * dpr
+    sigPad.height = rect.height * dpr
+    sigCtx.scale(dpr, dpr)
+  }
+  initPad()
+  window.addEventListener('resize', initPad)
+
+  function padPos(e) {
+    const r = sigPad.getBoundingClientRect()
+    const s = e.touches ? e.touches[0] : e
+    return { x: s.clientX - r.left, y: s.clientY - r.top }
+  }
+  function padStart(e) {
+    e.preventDefault()
+    drawing = true
+    sigPad.classList.add('active')
+    const p = padPos(e); lx = p.x; ly = p.y
+    if (!hasSig) {
+      hasSig = true
+      document.getElementById('sigOverlay').classList.add('signed')
+      document.getElementById('sigLabel').classList.add('hidden')
+    }
+  }
+  function padDraw(e) {
+    if (!drawing) return
+    e.preventDefault()
+    const p = padPos(e)
+    sigCtx.beginPath()
+    sigCtx.moveTo(lx, ly)
+    sigCtx.lineTo(p.x, p.y)
+    sigCtx.strokeStyle = '#111'
+    sigCtx.lineWidth   = 2
+    sigCtx.lineCap     = 'round'
+    sigCtx.lineJoin    = 'round'
+    sigCtx.stroke()
+    lx = p.x; ly = p.y
+    redrawOverlay()
+  }
+  function padStop() { drawing = false }
+
+  sigPad.addEventListener('mousedown',  padStart)
+  sigPad.addEventListener('mousemove',  padDraw)
+  sigPad.addEventListener('mouseup',    padStop)
+  sigPad.addEventListener('mouseleave', padStop)
+  sigPad.addEventListener('touchstart', padStart, { passive: false })
+  sigPad.addEventListener('touchmove',  padDraw,  { passive: false })
+  sigPad.addEventListener('touchend',   padStop)
+
+  window.clearSig = function() {
+    sigCtx.clearRect(0, 0, sigPad.width, sigPad.height)
+    sigPad.classList.remove('active')
+    hasSig = false
+    document.getElementById('sigOverlay').classList.remove('signed')
+    document.getElementById('sigLabel').classList.remove('hidden')
+    redrawOverlay()
+  }
+
+  // ── GERAR LINK ────────────────────────────────────────────
+  window.gerarLink = async function() {
+    if (!pdfPageImg) { toast('⚠️ Nenhum PDF carregado'); return }
+    if (!hasSig)     { toast('⚠️ Assine antes de gerar o link'); return }
+
+    const btn = document.getElementById('btnGerar')
+    btn.disabled = true
+    btn.innerHTML = '<div class="spinner"></div> Enviando...'
+
+    try {
+      // 1) Exporta canvas com PDF + assinatura
+      const out = document.createElement('canvas')
+      out.width  = pdfPageImg.width
+      out.height = pdfPageImg.height
+      const ctx  = out.getContext('2d')
+      ctx.drawImage(pdfPageImg, 0, 0)
+      const sx = PA.fx0 * out.width
+      const sy = PA.fy0 * out.height
+      const sw = (PA.fx1 - PA.fx0) * out.width
+      const sh = (PA.fy1 - PA.fy0) * out.height
+      ctx.drawImage(sigPad, 0, 0, sigPad.width, sigPad.height, sx, sy, sw, sh)
+
+      const blob = await new Promise(r => out.toBlob(r, 'image/png'))
+
+      // 2) Upload para Supabase Storage
+      const uid      = session.user.id
+      const romId    = crypto.randomUUID()
+      const path     = `pedro/${uid}/${romId}.png`
+
+      const { error: upErr } = await supabase.storage
+        .from('arquivos')
+        .upload(path, blob, { contentType: 'image/png' })
+
+      if (upErr) throw upErr
+
+      // 3) Insere no banco
+      const shareToken = crypto.randomUUID()
+      const { error: dbErr } = await supabase
+        .from('romaneios')
+        .insert({
+          id:            romId,
+          user_id:       uid,
+          nome_arquivo:  nomeArquivo,
+          arquivo_pedro: path,
+          status:        'pendente',
+          share_token:   shareToken
+        })
+
+      if (dbErr) throw dbErr
+
+      // 4) Exibe modal com link
+      const base = window.location.href.replace('novo.html', '').replace(/\/$/, '')
+      linkGerado = `${base}/assinar.html?token=${shareToken}`
+      document.getElementById('linkBox').textContent = linkGerado
+      document.getElementById('modalOverlay').classList.add('show')
+
+    } catch (err) {
+      console.error(err)
+      toast('Erro ao gerar link: ' + (err.message || err))
+    } finally {
+      btn.disabled = false
+      btn.innerHTML = '🔗 Gerar link para P.A.'
+    }
+  }
+
+  // ── MODAL ─────────────────────────────────────────────────
+  window.copiarLink = function() {
+    navigator.clipboard.writeText(linkGerado).then(() => {
+      const btn = document.getElementById('btnCopiarLink')
+      btn.textContent = '✓ Copiado!'
+      btn.classList.add('copiado')
+      setTimeout(() => {
+        btn.textContent = '📋 Copiar link'
+        btn.classList.remove('copiado')
+      }, 2500)
+    })
+  }
+
+  window.enviarWhatsapp = function() {
+    const msg = encodeURIComponent(`Olá! Por favor, assine o romaneio pelo link abaixo:\n${linkGerado}`)
+    window.open(`https://wa.me/?text=${msg}`, '_blank')
+  }
+
+  window.fecharModal = function() {
+    document.getElementById('modalOverlay').classList.remove('show')
+    window.location.href = 'index.html'
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────
+  function toast(msg) {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.classList.add('show')
+    setTimeout(() => t.classList.remove('show'), 2800)
+  }
+</script>
+</body>
+</html>

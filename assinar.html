@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Romaneio — Assinar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:   #1a3a6e;
+      --red:    #c0392b;
+      --paper:  #f4f1eb;
+      --ink:    #1c1c1c;
+      --muted:  #888;
+      --border: #d0ccc4;
+      --green:  #2d6a4f;
+      --green-bg: #d8f3dc;
+    }
+
+    body {
+      font-family: 'IBM Plex Mono', monospace;
+      background: var(--paper);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      width: 100%;
+      background: var(--blue);
+      border-bottom: 3px solid var(--red);
+      padding: 0 20px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+
+    .brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── ESTADOS ── */
+    .estado {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .estado .icone { font-size: 52px; }
+
+    .estado h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .estado p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    .estado.sucesso h2 { color: var(--green); }
+    .estado.sucesso .icone-wrap {
+      width: 80px; height: 80px;
+      background: var(--green-bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── PÁGINA PRINCIPAL (state: assinando) ── */
+    #paginaAssinar {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+
+    .aviso-banner {
+      background: #fff3cd;
+      border-bottom: 2px solid #e0a800;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #6b4e00;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── DOCUMENTO (imagem) ── */
+    .doc-container {
+      width: 100%;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,.12);
+      position: relative;
+    }
+
+    #docImagem {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Campo PA marcado na imagem (visual apenas) */
+    .campo-pa-indicator {
+      position: absolute;
+      left: 49.89%; top: 81.96%;
+      width: 50.11%; height: 4.51%;
+      border: 2px dashed var(--red);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .4s;
+    }
+    .campo-pa-indicator.show { opacity: 1; }
+
+    /* ── PAINEL ASSINATURA ── */
+    .sign-section {
+      padding: 20px 16px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sign-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sign-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px; height: 16px;
+      background: var(--red);
+      border-radius: 2px;
+    }
+
+    .pad-wrap {
+      border: 2px dashed var(--border);
+      border-radius: 4px;
+      background: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    .pad-wrap.active { border-color: var(--blue); border-style: solid; }
+
+    .pad-hint {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      font-size: 13px;
+      color: #ccc;
+      gap: 6px;
+      transition: opacity .3s;
+    }
+    .pad-hint.hidden { opacity: 0; }
+
+    #sigPad {
+      width: 100%;
+      height: 150px;
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .pad-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-limpar {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .btn-limpar:hover { color: var(--red); }
+
+    .nome-field label {
+      display: block;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .nome-field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .nome-field input:focus { border-color: var(--blue); }
+
+    .btn-enviar {
+      width: 100%;
+      padding: 15px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background .2s, opacity .2s;
+      margin-top: 4px;
+    }
+    .btn-enviar:hover { background: #a93226; }
+    .btn-enviar:disabled { opacity: .6; cursor: not-allowed; }
+
+    .spinner-btn {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 12px;
+      opacity: 0;
+      transition: all .3s;
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── UTILITÁRIO ── */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">📋 Romaneio Digital</div>
+</header>
+
+<!-- Estado: carregando -->
+<div class="estado" id="stateLoading">
+  <div class="spinner"></div>
+  <p>Carregando documento...</p>
+</div>
+
+<!-- Estado: não encontrado / inválido -->
+<div class="estado hidden" id="stateErro">
+  <div class="icone">❌</div>
+  <h2>Link inválido</h2>
+  <p>Este link de assinatura não foi encontrado<br>ou já expirou.</p>
+</div>
+
+<!-- Estado: já assinado -->
+<div class="estado hidden" id="stateJaAssinado">
+  <div class="icone">✅</div>
+  <h2>Já assinado</h2>
+  <p>Este romaneio já foi assinado.<br>Não é necessária nenhuma ação.</p>
+</div>
+
+<!-- Estado: assinar -->
+<div id="paginaAssinar" class="hidden">
+  <div class="aviso-banner">
+    📋 Romaneio para assinatura — assine no campo abaixo e toque em <strong>Enviar</strong>
+  </div>
+
+  <div class="doc-container">
+    <img id="docImagem" alt="Romaneio">
+    <div class="campo-pa-indicator" id="campoPA"></div>
+  </div>
+
+  <div class="sign-section">
+    <div class="sign-title">Sua assinatura</div>
+
+    <div class="pad-wrap" id="padWrap">
+      <canvas id="sigPad"></canvas>
+      <div class="pad-hint" id="padHint">✍️ Assine aqui</div>
+    </div>
+
+    <div class="pad-actions">
+      <button class="btn-limpar" onclick="limparPad()">Limpar</button>
+    </div>
+
+    <div class="nome-field">
+      <label>Seu nome (opcional)</label>
+      <input type="text" id="nomePa" placeholder="Ex: João Silva" autocomplete="name">
+    </div>
+
+    <button class="btn-enviar" id="btnEnviar" onclick="enviarAssinatura()">
+      Enviar Assinatura ✓
+    </button>
+  </div>
+</div>
+
+<!-- Estado: sucesso -->
+<div class="estado sucesso hidden" id="stateSucesso">
+  <div class="icone-wrap">✅</div>
+  <h2>Assinatura enviada!</h2>
+  <p>Obrigado. Sua assinatura foi registrada<br>com sucesso.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { supabase } from './js/supabase.js'
+
+  const PA = { fx0: 0.4989, fy0: 0.8196, fx1: 1.0, fy1: 0.8647 }
+
+  // ── Lê token da URL ───────────────────────────────────────
+  const params = new URLSearchParams(window.location.search)
+  const token  = params.get('token')
+
+  function mostrar(id) {
+    ;['stateLoading', 'stateErro', 'stateJaAssinado', 'paginaAssinar', 'stateSucesso']
+      .forEach(s => {
+        const el = document.getElementById(s)
+        if (s === id) el.classList.remove('hidden')
+        else          el.classList.add('hidden')
+      })
+  }
+
+  if (!token) { mostrar('stateErro'); throw 0 }
+
+  // ── Busca romaneio pelo token ─────────────────────────────
+  const { data: rom, error } = await supabase
+    .from('romaneios')
+    .select('*')
+    .eq('share_token', token)
+    .single()
+
+  if (error || !rom) { mostrar('stateErro'); throw 0 }
+  if (rom.status === 'assinado') { mostrar('stateJaAssinado'); throw 0 }
+
+  // ── Obtém URL pública da imagem de Pedro ──────────────────
+  const { data: urlData } = supabase.storage
+    .from('arquivos')
+    .getPublicUrl(rom.arquivo_pedro)
+
+  const imgUrl = urlData.publicUrl
+
+  // ── Carrega e exibe a imagem ──────────────────────────────
+  const docImagem = document.getElementById('docImagem')
+  docImagem.src   = imgUrl
+  mostrar('paginaAssinar')
+
+  docImagem.addEventListener('load', () => {
+    // Exibe indicador do campo PA
+    setTimeout(() => {
+      document.getElementById('campoPA').classList.add('show')
+    }, 500)
+  })
+
+  docImagem.addEventListener('error', () => {
+    toast('Erro ao carregar a imagem do documento')
+  })
+
+  // ── PAD DE ASSINATURA ─────────────────────────────────────
+  const sigPad  = document.getElementById('sigPad')
+  const sigCtx  = sigPad.getContext('2d')
+  const padWrap = document.getElementById('padWrap')
+  const padHint = document.getElementById('padHint')
+  let drawing = false, lx = 0, ly = 0, hasSig = false
+
+  function initPad() {
+    const dpr  = window.devicePixelRatio || 1
+    const rect = sigPad.getBoundingClientRect()
+    if (!rect.width) return
+    sigPad.width  = rect.width  * dpr
+    sigPad.height = rect.height * dpr
+    sigCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  }
+
+  // Inicializa pad após imagem carregada (para ter layout correto)
+  docImagem.addEventListener('load', () => {
+    requestAnimationFrame(initPad)
+  })
+  window.addEventListener('resize', initPad)
+
+  function padPos(e) {
+    const r = sigPad.getBoundingClientRect()
+    const s = e.touches ? e.touches[0] : e
+    return { x: s.clientX - r.left, y: s.clientY - r.top }
+  }
+
+  function padStart(e) {
+    e.preventDefault()
+    drawing = true
+    padWrap.classList.add('active')
+    if (!hasSig) {
+      hasSig = true
+      padHint.classList.add('hidden')
+    }
+    const p = padPos(e); lx = p.x; ly = p.y
+  }
+
+  function padDraw(e) {
+    if (!drawing) return
+    e.preventDefault()
+    const p = padPos(e)
+    sigCtx.beginPath()
+    sigCtx.moveTo(lx, ly)
+    sigCtx.lineTo(p.x, p.y)
+    sigCtx.strokeStyle = '#111'
+    sigCtx.lineWidth   = 2.5
+    sigCtx.lineCap     = 'round'
+    sigCtx.lineJoin    = 'round'
+    sigCtx.stroke()
+    lx = p.x; ly = p.y
+  }
+
+  function padStop() { drawing = false }
+
+  sigPad.addEventListener('mousedown',  padStart)
+  sigPad.addEventListener('mousemove',  padDraw)
+  sigPad.addEventListener('mouseup',    padStop)
+  sigPad.addEventListener('mouseleave', padStop)
+  sigPad.addEventListener('touchstart', padStart, { passive: false })
+  sigPad.addEventListener('touchmove',  padDraw,  { passive: false })
+  sigPad.addEventListener('touchend',   padStop)
+
+  window.limparPad = function() {
+    sigCtx.clearRect(0, 0, sigPad.width, sigPad.height)
+    padWrap.classList.remove('active')
+    padHint.classList.remove('hidden')
+    hasSig = false
+  }
+
+  // ── ENVIAR ASSINATURA ─────────────────────────────────────
+  window.enviarAssinatura = async function() {
+    if (!hasSig) { toast('⚠️ Assine antes de enviar'); return }
+
+    const btn = document.getElementById('btnEnviar')
+    btn.disabled = true
+    btn.innerHTML = '<div class="spinner-btn"></div> Enviando...'
+
+    try {
+      // 1) Carrega a imagem de Pedro em um canvas
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+
+      await new Promise((resolve, reject) => {
+        img.onload  = resolve
+        img.onerror = reject
+        img.src = imgUrl
+      })
+
+      const out = document.createElement('canvas')
+      out.width  = img.naturalWidth
+      out.height = img.naturalHeight
+      const ctx  = out.getContext('2d')
+
+      // 2) Desenha a imagem de Pedro
+      ctx.drawImage(img, 0, 0)
+
+      // 3) Fundo branco no campo PA (limpa assinatura anterior)
+      const sx = PA.fx0 * out.width
+      const sy = PA.fy0 * out.height
+      const sw = (PA.fx1 - PA.fx0) * out.width
+      const sh = (PA.fy1 - PA.fy0) * out.height
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(sx, sy, sw, sh)
+
+      // 4) Desenha assinatura do P.A. na posição PA
+      ctx.drawImage(sigPad, 0, 0, sigPad.width, sigPad.height, sx, sy, sw, sh)
+
+      // 5) Exporta como blob
+      const blob = await new Promise(r => out.toBlob(r, 'image/png'))
+
+      // 6) Upload para Storage
+      const path = `pa/${rom.id}.png`
+      const { error: upErr } = await supabase.storage
+        .from('arquivos')
+        .upload(path, blob, { contentType: 'image/png', upsert: true })
+
+      if (upErr) throw upErr
+
+      // 7) Atualiza registro no banco
+      const nomePa = document.getElementById('nomePa').value.trim() || null
+      const { error: dbErr } = await supabase
+        .from('romaneios')
+        .update({ arquivo_pa: path, status: 'assinado', nome_pa: nomePa })
+        .eq('share_token', token)
+
+      if (dbErr) throw dbErr
+
+      mostrar('stateSucesso')
+
+    } catch (err) {
+      console.error(err)
+      toast('Erro ao enviar assinatura. Tente novamente.')
+      btn.disabled = false
+      btn.innerHTML = 'Enviar Assinatura ✓'
+    }
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────
+  function toast(msg) {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.classList.add('show')
+    setTimeout(() => t.classList.remove('show'), 2800)
+  }
+</script>
+</body>
+</html>

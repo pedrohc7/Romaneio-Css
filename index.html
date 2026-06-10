@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Romaneio Digital — Painel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #1a3a6e;
+      --blue-l:     #2a5298;
+      --red:        #c0392b;
+      --paper:      #f4f1eb;
+      --ink:        #1c1c1c;
+      --muted:      #888;
+      --border:     #d0ccc4;
+      --pending-c:  #8b5e00;
+      --pending-bg: #fff3cd;
+      --signed-c:   #2d6a4f;
+      --signed-bg:  #d8f3dc;
+    }
+
+    body {
+      font-family: 'IBM Plex Mono', monospace;
+      background: var(--paper);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--blue);
+      border-bottom: 3px solid var(--red);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-email {
+      font-size: 11px;
+      color: rgba(255,255,255,.6);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-sair {
+      background: none;
+      border: 1.5px solid rgba(255,255,255,.3);
+      color: rgba(255,255,255,.8);
+      padding: 5px 12px;
+      border-radius: 3px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-sair:hover { border-color: rgba(255,255,255,.7); color: #fff; }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--blue);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .btn-novo {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn-novo:hover { background: var(--blue-l); }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: var(--blue);
+      color: rgba(255,255,255,.75);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #faf9f5; }
+
+    tbody td {
+      padding: 13px 14px;
+      font-size: 13px;
+      color: var(--ink);
+      vertical-align: middle;
+    }
+
+    .td-arquivo {
+      font-size: 12px;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .td-data {
+      white-space: nowrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 2px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-pendente {
+      background: var(--pending-bg);
+      color: var(--pending-c);
+    }
+    .badge-assinado {
+      background: var(--signed-bg);
+      color: var(--signed-c);
+    }
+
+    .td-acoes {
+      white-space: nowrap;
+    }
+
+    .btn-acao {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 3px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid;
+      transition: background .15s;
+    }
+    .btn-copiar {
+      color: var(--blue);
+      border-color: var(--blue);
+      background: #fff;
+    }
+    .btn-copiar:hover { background: #f0f4ff; }
+    .btn-copiar.copiado {
+      color: var(--signed-c);
+      border-color: var(--signed-c);
+      background: var(--signed-bg);
+    }
+
+    .btn-baixar {
+      color: var(--signed-c);
+      border-color: var(--signed-c);
+      background: #fff;
+    }
+    .btn-baixar:hover { background: var(--signed-bg); }
+
+    /* ── EMPTY / LOADING ── */
+    .estado {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .estado .icone { font-size: 40px; margin-bottom: 14px; }
+    .estado p { font-size: 13px; line-height: 1.6; }
+
+    .spinner-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .spinner {
+      width: 24px; height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 12px;
+      opacity: 0;
+      transition: all .3s;
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 600px) {
+      .main { padding: 20px 14px; }
+      .user-email { display: none; }
+      thead th:nth-child(2) { display: none; }
+      tbody td:nth-child(2) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">📋 Romaneio Digital</div>
+  <div class="header-right">
+    <span class="user-email" id="userEmail"></span>
+    <button class="btn-sair" id="btnSair">Sair</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="toolbar">
+    <h2>Meus Romaneios</h2>
+    <a href="novo.html" class="btn-novo">+ Novo Romaneio</a>
+  </div>
+
+  <div class="table-wrap">
+    <div class="spinner-wrap" id="loadingState">
+      <div class="spinner"></div>
+    </div>
+
+    <table id="tabela" style="display:none">
+      <thead>
+        <tr>
+          <th>Arquivo</th>
+          <th>Data</th>
+          <th>Status</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody id="listaBody"></tbody>
+    </table>
+
+    <div class="estado" id="emptyState" style="display:none">
+      <div class="icone">📂</div>
+      <p>Nenhum romaneio ainda.<br>Clique em "Novo Romaneio" para começar.</p>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { supabase } from './js/supabase.js'
+
+  // Verifica sessão
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) { window.location.href = 'login.html'; throw 0 }
+
+  document.getElementById('userEmail').textContent = session.user.email
+
+  document.getElementById('btnSair').addEventListener('click', async () => {
+    await supabase.auth.signOut()
+    window.location.href = 'login.html'
+  })
+
+  // Carrega romaneios
+  async function carregarRomaneios() {
+    const { data, error } = await supabase
+      .from('romaneios')
+      .select('*')
+      .order('criado_em', { ascending: false })
+
+    document.getElementById('loadingState').style.display = 'none'
+
+    if (error) { toast('Erro ao carregar romaneios'); return }
+
+    if (!data.length) {
+      document.getElementById('emptyState').style.display = 'block'
+      return
+    }
+
+    const tbody = document.getElementById('listaBody')
+    tbody.innerHTML = ''
+
+    for (const r of data) {
+      const data_fmt = new Date(r.criado_em).toLocaleDateString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: '2-digit'
+      })
+
+      const isPendente = r.status === 'pendente'
+
+      const badge = isPendente
+        ? `<span class="badge badge-pendente">⏳ Pendente</span>`
+        : `<span class="badge badge-assinado">✅ Assinado</span>`
+
+      let acaoBtn
+      if (isPendente) {
+        const linkUrl = gerarLinkPA(r.share_token)
+        acaoBtn = `<button class="btn-acao btn-copiar" onclick="copiarLink('${linkUrl}', this)">🔗 Copiar link</button>`
+      } else {
+        const { data: urlData } = supabase.storage.from('arquivos').getPublicUrl(r.arquivo_pa)
+        acaoBtn = `<button class="btn-acao btn-baixar" onclick="baixar('${urlData.publicUrl}', '${r.nome_arquivo}')">⬇ Baixar</button>`
+      }
+
+      const tr = document.createElement('tr')
+      tr.innerHTML = `
+        <td class="td-arquivo" title="${r.nome_arquivo}">${r.nome_arquivo}</td>
+        <td class="td-data">${data_fmt}</td>
+        <td>${badge}</td>
+        <td class="td-acoes">${acaoBtn}</td>
+      `
+      tbody.appendChild(tr)
+    }
+
+    document.getElementById('tabela').style.display = 'table'
+  }
+
+  function gerarLinkPA(token) {
+    const base = window.location.href.replace('index.html', '').replace(/\/$/, '')
+    return `${base}/assinar.html?token=${token}`
+  }
+
+  window.copiarLink = function(url, btn) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = '✓ Copiado!'
+      btn.classList.add('copiado')
+      setTimeout(() => {
+        btn.textContent = '🔗 Copiar link'
+        btn.classList.remove('copiado')
+      }, 2500)
+    }).catch(() => {
+      toast('Erro ao copiar. Tente manualmente.')
+    })
+  }
+
+  window.baixar = function(url, nome) {
+    const a = document.createElement('a')
+    a.href = url
+    a.download = nome.replace('.pdf', '_assinado.png')
+    a.target = '_blank'
+    a.click()
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.classList.add('show')
+    setTimeout(() => t.classList.remove('show'), 2800)
+  }
+
+  carregarRomaneios()
+</script>
+</body>
+</html>

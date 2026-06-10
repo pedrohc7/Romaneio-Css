@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Romaneio Digital — Entrar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #1a3a6e;
+      --blue-l:  #2a5298;
+      --red:     #c0392b;
+      --paper:   #f4f1eb;
+      --ink:     #1c1c1c;
+      --muted:   #888;
+      --border:  #d0ccc4;
+    }
+
+    body {
+      font-family: 'IBM Plex Mono', monospace;
+      background: var(--blue);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 39px,
+          rgba(255,255,255,.03) 39px,
+          rgba(255,255,255,.03) 40px
+        );
+    }
+
+    .card {
+      background: var(--paper);
+      width: 100%;
+      max-width: 400px;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+
+    .card-header {
+      background: var(--blue);
+      padding: 32px 32px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 4px solid var(--red);
+    }
+
+    .card-header .icon {
+      font-size: 36px;
+      line-height: 1;
+    }
+
+    .card-header h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .card-header p {
+      font-size: 11px;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .card-body {
+      padding: 32px;
+    }
+
+    .form-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      color: var(--ink);
+      background: #fff;
+      transition: border-color .2s;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--blue);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s, opacity .2s;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit:hover { background: var(--blue-l); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+    .toggle {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .toggle a {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+
+    .toggle a:hover { text-decoration: underline; }
+
+    .error-msg {
+      background: #fde8e6;
+      border-left: 3px solid var(--red);
+      border-radius: 2px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--red);
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div class="icon">📋</div>
+    <h1>Romaneio Digital</h1>
+    <p>Gestão de assinaturas</p>
+  </div>
+  <div class="card-body">
+    <div class="form-title" id="formTitle">Acesso ao sistema</div>
+    <div class="error-msg" id="errorMsg"></div>
+    <form id="loginForm" autocomplete="on">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="seu@email.com" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="senha" placeholder="••••••••" required autocomplete="current-password" minlength="6">
+      </div>
+      <button type="submit" class="btn-submit" id="btnSubmit">
+        <span id="btnText">Entrar</span>
+      </button>
+    </form>
+    <div class="toggle" id="toggleArea">
+      Não tem conta?
+      <a href="#" id="toggleLink">Cadastrar</a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { supabase } from './js/supabase.js'
+
+  // Redireciona se já logado
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session) window.location.href = 'index.html'
+
+  let modo = 'login' // 'login' | 'cadastro'
+
+  const form      = document.getElementById('loginForm')
+  const emailEl   = document.getElementById('email')
+  const senhaEl   = document.getElementById('senha')
+  const btnSubmit = document.getElementById('btnSubmit')
+  const btnText   = document.getElementById('btnText')
+  const errorMsg  = document.getElementById('errorMsg')
+  const formTitle = document.getElementById('formTitle')
+  const toggleLink= document.getElementById('toggleLink')
+  const toggleArea= document.getElementById('toggleArea')
+
+  toggleLink.addEventListener('click', e => {
+    e.preventDefault()
+    modo = modo === 'login' ? 'cadastro' : 'login'
+    if (modo === 'cadastro') {
+      formTitle.textContent = 'Criar conta'
+      btnText.textContent   = 'Cadastrar'
+      toggleArea.innerHTML  = 'Já tem conta? <a href="#" id="toggleLink">Entrar</a>'
+    } else {
+      formTitle.textContent = 'Acesso ao sistema'
+      btnText.textContent   = 'Entrar'
+      toggleArea.innerHTML  = 'Não tem conta? <a href="#" id="toggleLink">Cadastrar</a>'
+    }
+    document.getElementById('toggleLink').addEventListener('click', arguments.callee)
+    errorMsg.classList.remove('show')
+  })
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault()
+    errorMsg.classList.remove('show')
+    btnSubmit.disabled = true
+    btnText.textContent = ''
+    btnSubmit.innerHTML = '<div class="spinner"></div>'
+
+    const email = emailEl.value.trim()
+    const senha = senhaEl.value
+
+    let error
+    if (modo === 'login') {
+      ;({ error } = await supabase.auth.signInWithPassword({ email, password: senha }))
+    } else {
+      ;({ error } = await supabase.auth.signUp({ email, password: senha }))
+    }
+
+    if (error) {
+      const msgs = {
+        'Invalid login credentials': 'Email ou senha incorretos.',
+        'Email not confirmed':       'Confirme seu email antes de entrar.',
+        'User already registered':   'Este email já está cadastrado.',
+      }
+      errorMsg.textContent = msgs[error.message] || error.message
+      errorMsg.classList.add('show')
+      btnSubmit.disabled = false
+      btnSubmit.innerHTML = `<span id="btnText">${modo === 'login' ? 'Entrar' : 'Cadastrar'}</span>`
+    } else {
+      if (modo === 'cadastro') {
+        errorMsg.style.background = '#e6f4ea'
+        errorMsg.style.borderColor = '#2d6a4f'
+        errorMsg.style.color = '#2d6a4f'
+        errorMsg.textContent = 'Conta criada! Verifique seu email e entre.'
+        errorMsg.classList.add('show')
+        btnSubmit.disabled = false
+        btnSubmit.innerHTML = `<span id="btnText">Entrar</span>`
+        modo = 'login'
+      } else {
+        window.location.href = 'index.html'
+      }
+    }
+  })
+</script>
+</body>
+</html>
