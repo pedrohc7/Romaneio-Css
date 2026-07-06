@@ -369,7 +369,7 @@
   // devolucao: P.A. assina à direita (padrão)
   const PA_COORDS = {
     devolucao: { fx0: 0.53, fy0: 0.815, fx1: 0.98, fy1: 0.837 },
-    expedicao:  { fx0: 0.02, fy0: 0.815, fx1: 0.50, fy1: 0.837 }
+    expedicao:  { fx0: 0.26, fy0: 0.815, fx1: 0.74, fy1: 0.837 }
   }
 
   // ── Lê token da URL ───────────────────────────────────────
@@ -416,6 +416,7 @@
 
   // ── Carrega e exibe a imagem ──────────────────────────────
   const docImagem = document.getElementById('docImagem')
+  docImagem.crossOrigin = 'anonymous'
   docImagem.src   = imgUrl
   mostrar('paginaAssinar')
 
@@ -510,23 +511,14 @@
     btn.innerHTML = '<div class="spinner-btn"></div> Enviando...'
 
     try {
-      // 1) Carrega a imagem de Pedro em um canvas
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-
-      await new Promise((resolve, reject) => {
-        img.onload  = resolve
-        img.onerror = reject
-        img.src = imgUrl
-      })
-
+      // 1) Usa a imagem já carregada (crossOrigin foi definido ao carregar)
       const out = document.createElement('canvas')
-      out.width  = img.naturalWidth
-      out.height = img.naturalHeight
+      out.width  = docImagem.naturalWidth
+      out.height = docImagem.naturalHeight
       const ctx  = out.getContext('2d')
 
       // 2) Desenha a imagem de Pedro
-      ctx.drawImage(img, 0, 0)
+      ctx.drawImage(docImagem, 0, 0)
 
       // 3) Posição do campo do motoboy
       const sx = PA.fx0 * out.width
