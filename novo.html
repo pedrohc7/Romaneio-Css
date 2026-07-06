@@ -721,7 +721,7 @@ faça<!DOCTYPE html>
       if (dbErr) throw dbErr
 
       // 4) Exibe modal com link
-      const base = window.location.href.replace('novo.html', '').replace(/\/$/, '')
+      const base = window.location.origin + window.location.pathname.replace(/\/novo\.html$/, '').replace(/\/$/, '')
       linkGerado = `${base}/assinar.html?token=${shareToken}`
       document.getElementById('linkBox').textContent = linkGerado
       document.getElementById('modalOverlay').classList.add('show')
