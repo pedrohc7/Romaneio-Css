@@ -496,28 +496,27 @@ faça<!DOCTYPE html>
     ? { fx0: 0.53, fy0: 0.815, fx1: 0.98, fy1: 0.837 }
     : { fx0: 0.02, fy0: 0.815, fx1: 0.47, fy1: 0.837 }
 
-  // Atualiza labels e posição do overlay conforme tipo
-  const overlayPct = {
-    left:   (PA.fx0 * 100) + '%',
-    top:    (PA.fy0 * 100) + '%',
-    width:  ((PA.fx1 - PA.fx0) * 100) + '%',
-    height: ((PA.fy1 - PA.fy0) * 100) + '%'
-  }
   const sigOverlayEl = document.getElementById('sigOverlay')
   const sigLabelEl   = document.getElementById('sigLabel')
-  sigOverlayEl.style.left   = overlayPct.left
-  sigOverlayEl.style.top    = overlayPct.top
-  sigOverlayEl.style.width  = overlayPct.width
-  sigOverlayEl.style.height = overlayPct.height
-  sigLabelEl.style.left  = overlayPct.left
-  sigLabelEl.style.top   = overlayPct.top
-  sigLabelEl.style.width = overlayPct.width
 
   if (tipo === 'expedicao') {
-    document.querySelector('.sign-panel-title').textContent = 'Minha Assinatura (CSS)'
-    document.getElementById('btnGerar').innerHTML = '🔗 Gerar link para P.A.'
+    // Expedição: Pedro não assina — ocultar overlay, pad e botão limpar
+    sigOverlayEl.style.display = 'none'
+    sigLabelEl.style.display   = 'none'
+    document.getElementById('sigPad').style.display      = 'none'
+    document.querySelector('.btn-limpar').style.display  = 'none'
+    document.querySelector('.sign-panel-title').textContent = 'Expedição — PDF pronto para envio'
     document.title = 'Romaneio Digital — Nova Expedição'
     document.querySelector('.brand').textContent = '📋 Novo Romaneio — Expedição'
+  } else {
+    // Devolução: posiciona overlay no campo de Pedro (esquerda)
+    sigOverlayEl.style.left   = (PA.fx0 * 100) + '%'
+    sigOverlayEl.style.top    = (PA.fy0 * 100) + '%'
+    sigOverlayEl.style.width  = ((PA.fx1 - PA.fx0) * 100) + '%'
+    sigOverlayEl.style.height = ((PA.fy1 - PA.fy0) * 100) + '%'
+    sigLabelEl.style.left  = (PA.fx0 * 100) + '%'
+    sigLabelEl.style.top   = (PA.fy0 * 100) + '%'
+    sigLabelEl.style.width = ((PA.fx1 - PA.fx0) * 100) + '%'
   }
 
   let pdfDoc     = null
@@ -671,24 +670,26 @@ faça<!DOCTYPE html>
   // ── GERAR LINK ────────────────────────────────────────────
   window.gerarLink = async function() {
     if (!pdfPageImg) { toast('⚠️ Nenhum PDF carregado'); return }
-    if (!hasSig)     { toast('⚠️ Assine antes de gerar o link'); return }
+    if (tipo === 'devolucao' && !hasSig) { toast('⚠️ Assine antes de gerar o link'); return }
 
     const btn = document.getElementById('btnGerar')
     btn.disabled = true
     btn.innerHTML = '<div class="spinner"></div> Enviando...'
 
     try {
-      // 1) Exporta canvas com PDF + assinatura
+      // 1) Exporta canvas — Devolução compõe assinatura de Pedro; Expedição usa PDF limpo
       const out = document.createElement('canvas')
       out.width  = pdfPageImg.width
       out.height = pdfPageImg.height
       const ctx  = out.getContext('2d')
       ctx.drawImage(pdfPageImg, 0, 0)
-      const sx = PA.fx0 * out.width
-      const sy = PA.fy0 * out.height
-      const sw = (PA.fx1 - PA.fx0) * out.width
-      const sh = (PA.fy1 - PA.fy0) * out.height
-      ctx.drawImage(sigPad, 0, 0, sigPad.width, sigPad.height, sx, sy, sw, sh)
+      if (tipo === 'devolucao') {
+        const sx = PA.fx0 * out.width
+        const sy = PA.fy0 * out.height
+        const sw = (PA.fx1 - PA.fx0) * out.width
+        const sh = (PA.fy1 - PA.fy0) * out.height
+        ctx.drawImage(sigPad, 0, 0, sigPad.width, sigPad.height, sx, sy, sw, sh)
+      }
 
       const blob = await new Promise(r => out.toBlob(r, 'image/png'))
 
