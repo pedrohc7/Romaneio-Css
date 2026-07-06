@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+faça<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
@@ -486,8 +486,39 @@
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) { window.location.href = 'login.html'; throw 0 }
 
-  // Campo de Pedro (lado esquerdo do documento)
-  const PA = { fx0: 0.02, fy0: 0.815, fx1: 0.47, fy1: 0.837 }
+  // Tipo de documento: devolucao (padrão) ou expedicao
+  const urlParams = new URLSearchParams(location.search)
+  const tipo = urlParams.get('tipo') === 'expedicao' ? 'expedicao' : 'devolucao'
+
+  // Coordenadas do campo de Pedro variam pelo tipo:
+  // devolucao → esquerda | expedicao → direita ("CSS: responsável")
+  const PA = tipo === 'expedicao'
+    ? { fx0: 0.53, fy0: 0.815, fx1: 0.98, fy1: 0.837 }
+    : { fx0: 0.02, fy0: 0.815, fx1: 0.47, fy1: 0.837 }
+
+  // Atualiza labels e posição do overlay conforme tipo
+  const overlayPct = {
+    left:   (PA.fx0 * 100) + '%',
+    top:    (PA.fy0 * 100) + '%',
+    width:  ((PA.fx1 - PA.fx0) * 100) + '%',
+    height: ((PA.fy1 - PA.fy0) * 100) + '%'
+  }
+  const sigOverlayEl = document.getElementById('sigOverlay')
+  const sigLabelEl   = document.getElementById('sigLabel')
+  sigOverlayEl.style.left   = overlayPct.left
+  sigOverlayEl.style.top    = overlayPct.top
+  sigOverlayEl.style.width  = overlayPct.width
+  sigOverlayEl.style.height = overlayPct.height
+  sigLabelEl.style.left  = overlayPct.left
+  sigLabelEl.style.top   = overlayPct.top
+  sigLabelEl.style.width = overlayPct.width
+
+  if (tipo === 'expedicao') {
+    document.querySelector('.sign-panel-title').textContent = 'Minha Assinatura (CSS)'
+    document.getElementById('btnGerar').innerHTML = '🔗 Gerar link para P.A.'
+    document.title = 'Romaneio Digital — Nova Expedição'
+    document.querySelector('.brand').textContent = '📋 Novo Romaneio — Expedição'
+  }
 
   let pdfDoc     = null
   let pdfPageImg = null
@@ -682,7 +713,8 @@
           nome_arquivo:  nomeArquivo,
           arquivo_pedro: path,
           status:        'pendente',
-          share_token:   shareToken
+          share_token:   shareToken,
+          tipo
         })
 
       if (dbErr) throw dbErr

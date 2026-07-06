@@ -131,11 +131,9 @@
       display: block;
     }
 
-    /* Campo motoboy marcado na imagem (visual apenas) */
+    /* Campo motoboy marcado na imagem (visual apenas) — posição definida via JS */
     .campo-pa-indicator {
       position: absolute;
-      left: 53%; top: 81.5%;
-      width: 45%; height: 2.2%;
       border: 2px dashed var(--red);
       pointer-events: none;
       opacity: 0;
@@ -366,8 +364,13 @@
 <script type="module">
   import { supabase } from './js/supabase.js'
 
-  // Campo do motoboy — espelho do campo de Pedro (lado direito)
-  const PA = { fx0: 0.53, fy0: 0.815, fx1: 0.98, fy1: 0.837 }
+  // Campo do motoboy — posição depende do tipo do romaneio
+  // expedicao: P.A. assina à esquerda ("Ponto de Apoio")
+  // devolucao: P.A. assina à direita (padrão)
+  const PA_COORDS = {
+    devolucao: { fx0: 0.53, fy0: 0.815, fx1: 0.98, fy1: 0.837 },
+    expedicao:  { fx0: 0.02, fy0: 0.815, fx1: 0.47, fy1: 0.837 }
+  }
 
   // ── Lê token da URL ───────────────────────────────────────
   const params = new URLSearchParams(window.location.search)
@@ -393,6 +396,16 @@
 
   if (error || !rom) { mostrar('stateErro'); throw 0 }
   if (rom.status === 'assinado') { mostrar('stateJaAssinado'); throw 0 }
+
+  // Coordenadas do campo do P.A. variam pelo tipo do documento
+  const PA = PA_COORDS[rom.tipo] || PA_COORDS.devolucao
+
+  // Posiciona o indicador visual do campo do P.A. conforme o lado correto
+  const indicator = document.getElementById('campoPA')
+  indicator.style.left   = (PA.fx0 * 100) + '%'
+  indicator.style.top    = (PA.fy0 * 100) + '%'
+  indicator.style.width  = ((PA.fx1 - PA.fx0) * 100) + '%'
+  indicator.style.height = ((PA.fy1 - PA.fy0) * 100) + '%'
 
   // ── Obtém URL pública da imagem de Pedro ──────────────────
   const { data: urlData } = supabase.storage

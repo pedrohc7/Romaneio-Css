@@ -131,6 +131,35 @@
     }
     .btn-novo:hover { background: var(--blue-l); }
 
+    /* ── ABAS ── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      padding: 10px 20px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn:hover { color: var(--ink); }
+    .tab-btn.ativo {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+
     /* ── TABLE ── */
     .table-wrap {
       background: #fff;
@@ -300,7 +329,12 @@
 <main class="main">
   <div class="toolbar">
     <h2>Meus Romaneios</h2>
-    <a href="novo.html" class="btn-novo">+ Novo Romaneio</a>
+    <a href="novo.html?tipo=devolucao" class="btn-novo" id="btnNovo">+ Novo Romaneio</a>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn ativo" id="tab-devolucao" onclick="mudarAba('devolucao')">↩ Devolução</button>
+    <button class="tab-btn" id="tab-expedicao" onclick="mudarAba('expedicao')">📦 Expedição</button>
   </div>
 
   <div class="table-wrap">
@@ -343,11 +377,26 @@
     window.location.href = 'login.html'
   })
 
-  // Carrega romaneios
+  let tipoAtivo = 'devolucao'
+
+  window.mudarAba = function(tipo) {
+    tipoAtivo = tipo
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('ativo'))
+    document.getElementById('tab-' + tipo).classList.add('ativo')
+    document.getElementById('btnNovo').href = 'novo.html?tipo=' + tipo
+    carregarRomaneios()
+  }
+
+  // Carrega romaneios do tipo ativo
   async function carregarRomaneios() {
+    document.getElementById('loadingState').style.display = 'flex'
+    document.getElementById('tabela').style.display = 'none'
+    document.getElementById('emptyState').style.display = 'none'
+
     const { data, error } = await supabase
       .from('romaneios')
       .select('*')
+      .eq('tipo', tipoAtivo)
       .order('criado_em', { ascending: false })
 
     document.getElementById('loadingState').style.display = 'none'
