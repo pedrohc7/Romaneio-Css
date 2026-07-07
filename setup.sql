@@ -66,6 +66,16 @@ CREATE POLICY "anon_assinar" ON romaneios
 --   Allowed operation: INSERT
 --   Target roles: anon
 --   Policy: bucket_id = 'arquivos' AND (storage.foldername(name))[1] = 'pa'
+--
+-- Policy 4 — equipe logada também pode fazer upload na pasta pa/:
+--   Necessária porque o Supabase client reaproveita a sessão autenticada
+--   já salva no navegador (mesma origem), mesmo em assinar.html — então
+--   testar o link do P.A. logado como Pedro/Leo cai na role "authenticated",
+--   não "anon", e sem essa policy o upload é bloqueado pelo RLS.
+--   Nome: authenticated_upload_pa
+--   Allowed operation: INSERT
+--   Target roles: authenticated
+--   Policy: bucket_id = 'arquivos' AND (storage.foldername(name))[1] = 'pa'
 -- ============================================================
 
 -- 4. Habilite Auth em: Authentication → Providers → Email → Enable
