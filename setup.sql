@@ -21,11 +21,14 @@ CREATE TABLE IF NOT EXISTS romaneios (
 -- 2. Row Level Security
 ALTER TABLE romaneios ENABLE ROW LEVEL SECURITY;
 
--- Pedro vê e gerencia somente seus próprios romaneios
-CREATE POLICY "autenticado_proprio" ON romaneios
+-- Qualquer usuário autenticado (equipe: Pedro, Leo, ...) vê e gerencia
+-- todos os romaneios, não só os que ele mesmo criou. user_id continua
+-- sendo gravado com o autor real (novo.html), só não é mais usado para
+-- restringir visibilidade.
+CREATE POLICY "equipe_acesso_total" ON romaneios
   FOR ALL TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING (true)
+  WITH CHECK (true);
 
 -- P.A. (anon) pode ler qualquer romaneio — filtrado por share_token na query
 CREATE POLICY "anon_leitura" ON romaneios
