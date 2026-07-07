@@ -536,7 +536,7 @@
       const path = `pa/${rom.id}.png`
       const { error: upErr } = await supabase.storage
         .from('arquivos')
-        .upload(path, blob, { contentType: 'image/png', upsert: true })
+        .upload(path, blob, { contentType: 'image/png' })
 
       if (upErr) throw upErr
 
